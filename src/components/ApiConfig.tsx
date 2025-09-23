@@ -209,12 +209,11 @@ export function ApiConfigModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   <p className="text-sm text-purple-700 font-medium mb-2">
                     🎨 图片生成说明
                   </p>
-                  <ul className="text-xs text-purple-600 space-y-1">
-                    <li>• <strong>支持模型</strong>: DALL-E 3, MaaS Image 1, MaaS-MJ</li>
-                    <li>• <strong>MJ模型</strong>: 需要配置专用端点路径</li>
-                    <li>• <strong>其他模型</strong>: 使用基础 API 配置</li>
-                    <li>• <strong>完整地址</strong>: {endpoint}/v1/ai/{mjEndpointPath || '[端点路径]'}</li>
-                  </ul>
+                  <div className="text-xs text-purple-600">
+                    • <strong>MJ模型</strong>: 需要配置专用的endpoint路径<br/>
+                    • <strong>路径格式</strong>: 仅填写路径部分，如 v1/ai/eljciTfuqTxBSjXl<br/>
+                    • <strong>完整地址</strong>: {endpoint}/{mjEndpointPath || '[您填写的路径]'}
+                  </div>
                 </div>
               </div>
             )}
@@ -258,13 +257,17 @@ export function ApiConfigModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   <p className="text-sm text-orange-700 font-medium mb-2">
                     🎬 视频生成说明
                   </p>
-                  <ul className="text-xs text-orange-600 space-y-1">
-                    <li>• <strong>HL模型</strong>: 支持文本转视频、图片转视频等</li>
-                    <li>• <strong>KL模型</strong>: 所有KL系列模型共享统一端点</li>
-                    <li>• <strong>输入支持</strong>: 文本、图片、音频</li>
-                    <li>• <strong>HL地址</strong>: {endpoint}/v1/ai/{hlEndpointPath || '[HL端点]'}</li>
-                    <li>• <strong>KL地址</strong>: {endpoint}/v1/ai/{klEndpointPath || '[KL端点]'}</li>
-                  </ul>
+                  <div className="text-xs text-orange-600">
+                    • <strong>HL视频模型</strong>: 需要配置专用的endpoint路径<br/>
+                    • <strong>路径格式</strong>: 可填写ID或完整路径<br/>
+                    • <strong>示例</strong>: UfRLJwuMWPdfKWQg<br/>
+                    • <strong>完整地址</strong>: {endpoint}/v1/ai/[您填写的路径]<br/><br/>
+                    • <strong>KL模型配置</strong>: 所有KL模型共享同一个endpoint配置<br/>
+                    • <strong>重要提示</strong>: endpoint路径决定实际使用的模型版本<br/>
+                    • <strong>V1.6示例</strong>: alhWUjkMbVNjpfNF<br/>
+                    • <strong>V2.1示例</strong>: ktSHZuyRgirDspgK<br/>
+                    • <strong>完整地址</strong>: {endpoint}/v1/ai/[您填写的路径]
+                  </div>
                 </div>
               </div>
             )}

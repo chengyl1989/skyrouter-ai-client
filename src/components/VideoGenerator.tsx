@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { useModels } from '@/hooks/useModels';
 import { createApiClient } from '@/lib/api';
-import { Send, Download, Loader2, Video as VideoIcon, RefreshCw, Upload, Settings, Save, X } from 'lucide-react';
+import { Send, Download, Loader2, Video as VideoIcon, RefreshCw, Upload, X } from 'lucide-react';
 
 interface GeneratedVideo {
   id: string;
@@ -24,21 +24,8 @@ export function VideoGenerator() {
   const [selectedModel, setSelectedModel] = useState('');
   const [inputType, setInputType] = useState<'text' | 'image' | 'speech'>('text');
   const [inputFile, setInputFile] = useState<File | null>(null);
-  const [showEndpointConfig, setShowEndpointConfig] = useState(false);
-  const [currentEndpoint, setCurrentEndpoint] = useState('');
+  const [showConfigHelp, setShowConfigHelp] = useState(false);
 
-  // 获取当前选中模型的endpoint
-  const getCurrentModelEndpoint = () => {
-    if (!selectedModel || !apiConfig) return '';
-    
-    // KL模型使用统一的KL endpoint配置
-    if (isKLModel(selectedModel)) {
-      return apiConfig.klEndpointPath || '';
-    }
-    
-    // HL模型使用独立的endpoint配置
-    return apiConfig.hlModelEndpoints?.[selectedModel] || '';
-  };
 
   // 判断是否为KL模型
   const isKLModel = (modelId: string) => {
@@ -46,82 +33,29 @@ export function VideoGenerator() {
     return id.includes('maas_kl_') || id.includes('kl_') || id.includes('keling');
   };
 
-  // 更新当前选中模型的endpoint
-  const updateCurrentModelEndpoint = (endpoint: string) => {
-    if (!selectedModel || !apiConfig) return;
-    
-    let updatedConfig;
-    
-    // KL模型使用统一的KL endpoint配置
-    if (isKLModel(selectedModel)) {
-      updatedConfig = {
-        ...apiConfig,
-        klEndpointPath: endpoint
-      };
-    } else {
-      // HL模型使用独立的endpoint配置  
-      updatedConfig = {
-        ...apiConfig,
-        hlModelEndpoints: {
-          ...apiConfig.hlModelEndpoints,
-          [selectedModel]: endpoint
-        }
-      };
-    }
-    
-    setApiConfig(updatedConfig);
-  };
 
-  // 保存endpoint配置
-  const handleSaveEndpoint = () => {
-    if (!selectedModel || !apiConfig || !currentEndpoint.trim()) return;
-    
-    let updatedConfig;
-    
-    // KL模型使用统一的KL endpoint配置
-    if (isKLModel(selectedModel)) {
-      updatedConfig = {
-        ...apiConfig,
-        klEndpointPath: currentEndpoint.trim()
-      };
-    } else {
-      // HL模型使用独立的endpoint配置
-      updatedConfig = {
-        ...apiConfig,
-        hlModelEndpoints: {
-          ...apiConfig.hlModelEndpoints,
-          [selectedModel]: currentEndpoint.trim()
-        }
-      };
-    }
-    
-    setApiConfig(updatedConfig);
-    setShowEndpointConfig(false);
-  };
 
   // 检查当前模型是否需要配置
   const needsConfiguration = (modelId: string) => {
     if (!modelId) return false;
     const id = modelId.toLowerCase();
-    
+
     // KL模型检查统一的KL endpoint配置
     if (id.includes('maas_kl_') || id.includes('kl_') || id.includes('keling')) {
       return !apiConfig?.klEndpointPath;
     }
-    
-    // HL模型检查独立的endpoint配置
+
+    // HL模型检查统一的HL endpoint配置
     if (id.includes('hl_video') || id.includes('maas_hl_video')) {
-      return !getCurrentModelEndpoint();
+      return !apiConfig?.hlEndpointPath;
     }
-    
+
     return false;
   };
 
   // 监听API配置变化
   useEffect(() => {
-    if (apiConfig && selectedModel) {
-      setCurrentEndpoint(getCurrentModelEndpoint());
-    }
+    // 不再需要监听配置变化，因为使用统一配置
   }, [apiConfig, selectedModel]);
 
   const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -213,11 +147,9 @@ export function VideoGenerator() {
     setIsGenerating(true);
 
     try {
-      // 检查当前模型是否已配置endpoint
-      const modelEndpoint = getCurrentModelEndpoint();
-      if (!modelEndpoint) {
-        setCurrentEndpoint('');
-        setShowEndpointConfig(true);
+      // 检查是否需要配置
+      if (needsConfiguration(selectedModel)) {
+        setShowConfigHelp(true);
         setIsGenerating(false);
         return;
       }
@@ -229,9 +161,9 @@ export function VideoGenerator() {
       if (modelId.includes('maas_hl_video') || modelId.includes('hl_video')) {
         console.log('Using MaaS-HL API for:', selectedModel);
         
-        // 使用用户配置的专用endpoint
-        const hlEndpointPath = modelEndpoint;
-        console.log(`Using user-configured HL endpoint for ${selectedModel}:`, hlEndpointPath);
+        // 使用统一配置的HL端点路径
+        const hlEndpointPath = apiConfig.hlEndpointPath;
+        console.log(`Using unified HL endpoint:`, hlEndpointPath);
         
         // 构建请求数据
         let requestData: any = {
@@ -543,41 +475,47 @@ export function VideoGenerator() {
                 
                 <div className="flex items-center gap-2 sm:gap-4">
                   <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                    selectedModel && needsConfiguration(selectedModel)
-                      ? 'bg-orange-100 text-orange-700' 
-                      : selectedModel && (selectedModel.toLowerCase().includes('hl_video') || selectedModel.toLowerCase().includes('maas_hl_video'))
-                      ? 'bg-green-100 text-green-700'
+                    selectedModel && (selectedModel.toLowerCase().includes('hl_video') || selectedModel.toLowerCase().includes('maas_hl_video'))
+                      ? 'bg-blue-100 text-blue-700'
                       : selectedModel && isKLModel(selectedModel)
                       ? 'bg-purple-100 text-purple-700'
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {selectedModel && needsConfiguration(selectedModel) ? '需配置' : 
-                     selectedModel && (selectedModel.toLowerCase().includes('hl_video') || 
-                                     selectedModel.toLowerCase().includes('maas_hl_video')) ? '已配置' :
+                    {selectedModel && (selectedModel.toLowerCase().includes('hl_video') ||
+                                     selectedModel.toLowerCase().includes('maas_hl_video')) ? 'HL模型' :
                      selectedModel && isKLModel(selectedModel) ? (
                        apiConfig?.klEndpointPath ? (
                          apiConfig.klEndpointPath.includes('alhWUjkMbVNjpfNF') ? 'KL V1.6' :
-                         apiConfig.klEndpointPath.includes('ktSHZuyRgirDspgK') ? 'KL V2.1' : 'KL已配置'
-                       ) : '需配置'
+                         apiConfig.klEndpointPath.includes('ktSHZuyRgirDspgK') ? 'KL V2.1' : 'KL模型'
+                       ) : 'KL模型'
                      ) : '标准模型'}
                   </span>
                   
-                  {/* 配置按钮 */}
-                  {selectedModel && (selectedModel.toLowerCase().includes('hl_video') || 
+                  {/* 配置状态指示器 */}
+                  {selectedModel && (selectedModel.toLowerCase().includes('hl_video') ||
                                    selectedModel.toLowerCase().includes('maas_hl_video') ||
                                    selectedModel.toLowerCase().includes('kl_') ||
                                    selectedModel.toLowerCase().includes('maas_kl_') ||
                                    selectedModel.toLowerCase().includes('keling')) && (
-                    <button
-                      onClick={() => {
-                        setCurrentEndpoint(getCurrentModelEndpoint());
-                        setShowEndpointConfig(true);
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded flex-shrink-0"
-                      title="配置视频生成端点"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                        !needsConfiguration(selectedModel)
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {!needsConfiguration(selectedModel) ? '✓ 已配置' : '⚠ 需配置'}
+                      </span>
+
+                      {needsConfiguration(selectedModel) && (
+                        <button
+                          onClick={() => setShowConfigHelp(true)}
+                          className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                          title="配置视频生成端点"
+                        >
+                          点击配置
+                        </button>
+                      )}
+                    </div>
                   )}
                   
                   {/* 显示不可用模型提示 */}
@@ -750,88 +688,50 @@ export function VideoGenerator() {
         )}
       </div>
 
-      {/* 视频Endpoint配置模态框 */}
-      {showEndpointConfig && (
+      {/* 配置提示弹窗 */}
+      {showConfigHelp && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">配置视频生成端点</h3>
+              <h3 className="text-lg font-semibold text-orange-700">⚠ 需要配置视频生成端点</h3>
               <button
-                onClick={() => setShowEndpointConfig(false)}
+                onClick={() => setShowConfigHelp(false)}
                 className="p-1 hover:bg-gray-100 rounded"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  {isKLModel(selectedModel) 
-                    ? "KL模型统一端点路径 (决定实际使用的模型版本)" 
-                    : `${selectedModel} 端点路径`
-                  }
-                </label>
-                <input
-                  type="text"
-                  value={currentEndpoint}
-                  onChange={(e) => setCurrentEndpoint(e.target.value)}
-                  placeholder={
-                    selectedModel && (selectedModel.toLowerCase().includes('hl_video') || selectedModel.toLowerCase().includes('maas_hl_video'))
-                      ? "例如: UfRLJwuMWPdfKWQg"
-                      : selectedModel && (selectedModel.toLowerCase().includes('kl_') || selectedModel.toLowerCase().includes('maas_kl_') || selectedModel.toLowerCase().includes('keling'))
-                      ? "例如: alhWUjkMbVNjpfNF (V1.6) 或 ktSHZuyRgirDspgK (V2.1)"
-                      : "例如: your-endpoint-id"
-                  }
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <p className="text-sm text-blue-700 mb-2">
-                  📋 <strong>配置说明:</strong>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-blue-700 mb-3">
+                  🎬 <strong>视频生成需要配置专用端点</strong>
                 </p>
-                <p className="text-xs text-blue-600">
-                  {selectedModel && (selectedModel.toLowerCase().includes('hl_video') || selectedModel.toLowerCase().includes('maas_hl_video')) ? (
-                    <>
-                      • <strong>HL视频模型</strong>: 需要配置专用的endpoint路径<br/>
-                      • <strong>路径格式</strong>: 可填写ID或完整路径<br/>
-                      • <strong>示例</strong>: UfRLJwuMWPdfKWQg<br/>
-                      • <strong>完整地址</strong>: {apiConfig?.endpoint}/v1/ai/[您填写的路径]
-                    </>
-                  ) : selectedModel && (selectedModel.toLowerCase().includes('kl_') || selectedModel.toLowerCase().includes('maas_kl_') || selectedModel.toLowerCase().includes('keling')) ? (
-                    <>
-                      • <strong>KL模型配置</strong>: 所有KL模型共享同一个endpoint配置<br/>
-                      • <strong>重要提示</strong>: endpoint路径决定实际使用的模型版本<br/>
-                      • <strong>V1.6示例</strong>: alhWUjkMbVNjpfNF<br/>
-                      • <strong>V2.1示例</strong>: ktSHZuyRgirDspgK<br/>
-                      • <strong>完整地址</strong>: {apiConfig?.endpoint}/v1/ai/[您填写的路径]
-                    </>
-                  ) : (
-                    <>
-                      • <strong>视频模型</strong>: 需要配置专用的endpoint路径<br/>
-                      • <strong>路径格式</strong>: 可填写ID或完整路径<br/>
-                      • <strong>完整地址</strong>: {apiConfig?.endpoint}/v1/ai/[您填写的路径]
-                    </>
-                  )}
+                <p className="text-xs text-blue-600 mb-3">
+                  为了使用视频生成功能，需要先在统一配置管理中设置相应的端点路径。
+                </p>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <p><strong>配置步骤：</strong></p>
+                  <p>1. 点击页面左上角的设置按钮</p>
+                  <p>2. 选择"视频生成"标签页</p>
+                  <p>3. 填写对应的端点路径（HL或KL）</p>
+                  <p>4. 保存配置后即可使用视频生成</p>
+                </div>
+              </div>
+
+              <div className="bg-green-50 p-3 rounded-lg">
+                <p className="text-xs text-green-700">
+                  💡 <strong>温馨提示</strong>: 统一配置管理可以一次性设置所有功能的端点，避免重复配置。
                 </p>
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row sm:justify-end gap-2 mt-6">
+
+            <div className="flex justify-end gap-2 mt-6">
               <button
-                onClick={() => setShowEndpointConfig(false)}
-                className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:text-gray-800 text-center"
+                onClick={() => setShowConfigHelp(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
-                取消
-              </button>
-              <button
-                onClick={handleSaveEndpoint}
-                disabled={!currentEndpoint.trim()}
-                className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 flex items-center justify-center gap-1"
-              >
-                <Save className="w-4 h-4" />
-                保存
+                我知道了
               </button>
             </div>
           </div>

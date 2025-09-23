@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore';
 import { useModels } from '@/hooks/useModels';
 import { createApiClient } from '@/lib/api';
 import { GeneratedImage } from '@/types';
-import { Send, Download, Loader2, Image as ImageIcon, RefreshCw, Settings, Save, X } from 'lucide-react';
+import { Send, Download, Loader2, Image as ImageIcon, RefreshCw, X } from 'lucide-react';
 
 export function ImageGenerator() {
   const { apiConfig, generatedImages, addGeneratedImage, setApiConfig } = useStore();
@@ -13,50 +13,15 @@ export function ImageGenerator() {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState('');
-  const [showEndpointConfig, setShowEndpointConfig] = useState(false);
-  const [currentEndpoint, setCurrentEndpoint] = useState('');
+  const [showConfigHelp, setShowConfigHelp] = useState(false);
 
-  // 获取当前选中模型的endpoint
-  const getCurrentModelEndpoint = () => {
-    if (!selectedModel || !apiConfig) return '';
-    return apiConfig.mjModelEndpoints?.[selectedModel] || '';
-  };
-
-  // 更新当前选中模型的endpoint
-  const updateCurrentModelEndpoint = (endpoint: string) => {
-    if (!selectedModel || !apiConfig) return;
-    
-    const updatedConfig = {
-      ...apiConfig,
-      mjModelEndpoints: {
-        ...apiConfig.mjModelEndpoints,
-        [selectedModel]: endpoint
-      }
-    };
-    setApiConfig(updatedConfig);
-  };
-
-  // 保存endpoint配置
-  const handleSaveEndpoint = () => {
-    if (!selectedModel || !apiConfig || !currentEndpoint.trim()) return;
-    
-    const updatedConfig = {
-      ...apiConfig,
-      mjModelEndpoints: {
-        ...apiConfig.mjModelEndpoints,
-        [selectedModel]: currentEndpoint.trim()
-      }
-    };
-    setApiConfig(updatedConfig);
-    setShowEndpointConfig(false);
-  };
 
   // 检查当前模型是否需要配置
   const needsConfiguration = (modelId: string) => {
     if (!modelId) return false;
     const id = modelId.toLowerCase();
     if (id.includes('mj') || id.includes('midjourney')) {
-      return !getCurrentModelEndpoint();
+      return !apiConfig?.mjEndpointPath;
     }
     return false;
   };
@@ -105,19 +70,17 @@ export function ImageGenerator() {
       // 检查是否为MaaS-MJ模型，使用专门的API
       if (modelId.includes('maas-mj')) {
         console.log('Using MaaS-MJ API for:', selectedModel);
-        
-        // 检查当前模型是否已配置endpoint
-        const modelEndpoint = getCurrentModelEndpoint();
-        if (!modelEndpoint) {
-          setCurrentEndpoint('');
-          setShowEndpointConfig(true);
+
+        // 检查是否配置了MJ端点路径
+        if (!apiConfig.mjEndpointPath) {
+          setShowConfigHelp(true);
           setIsGenerating(false);
           return;
         }
-        
-        // 使用用户配置的专用endpoint
-        const mjEndpointPath = modelEndpoint;
-        console.log(`Using user-configured MJ endpoint for ${selectedModel}:`, mjEndpointPath);
+
+        // 使用统一配置的MJ端点路径
+        const mjEndpointPath = apiConfig.mjEndpointPath;
+        console.log(`Using unified MJ endpoint:`, mjEndpointPath);
         
         const response = await fetch('/api/images/mj', {
           method: 'POST',
@@ -389,28 +352,34 @@ export function ImageGenerator() {
                 
                 <div className="flex items-center gap-2 sm:gap-4">
                   <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                    selectedModel && needsConfiguration(selectedModel)
-                      ? 'bg-orange-100 text-orange-700' 
-                      : selectedModel && (selectedModel.toLowerCase().includes('mj') || selectedModel.toLowerCase().includes('midjourney'))
-                      ? 'bg-green-100 text-green-700'
+                    selectedModel && (selectedModel.toLowerCase().includes('mj') || selectedModel.toLowerCase().includes('midjourney'))
+                      ? 'bg-blue-100 text-blue-700'
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {selectedModel && needsConfiguration(selectedModel) ? '需配置' : 
-                     selectedModel && (selectedModel.toLowerCase().includes('mj') || selectedModel.toLowerCase().includes('midjourney')) ? '已配置' : '标准模型'}
+                    {selectedModel && (selectedModel.toLowerCase().includes('mj') || selectedModel.toLowerCase().includes('midjourney')) ? 'MJ模型' : '标准模型'}
                   </span>
                   
-                  {/* 配置按钮 */}
+                  {/* 配置状态指示器 */}
                   {selectedModel && (selectedModel.toLowerCase().includes('mj') || selectedModel.toLowerCase().includes('midjourney')) && (
-                    <button
-                      onClick={() => {
-                        setCurrentEndpoint(getCurrentModelEndpoint());
-                        setShowEndpointConfig(true);
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded flex-shrink-0"
-                      title="配置图像生成端点"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                        apiConfig?.mjEndpointPath
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {apiConfig?.mjEndpointPath ? '✓ 已配置' : '⚠ 需配置'}
+                      </span>
+
+                      {!apiConfig?.mjEndpointPath && (
+                        <button
+                          onClick={() => setShowConfigHelp(true)}
+                          className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                          title="配置图像生成端点"
+                        >
+                          点击配置
+                        </button>
+                      )}
+                    </div>
                   )}
                   
                   {/* 显示不可用模型提示 */}
@@ -499,60 +468,50 @@ export function ImageGenerator() {
         )}
       </div>
 
-      {/* 图像Endpoint配置模态框 */}
-      {showEndpointConfig && (
+      {/* 配置提示弹窗 */}
+      {showConfigHelp && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">配置图像生成端点</h3>
+              <h3 className="text-lg font-semibold text-orange-700">⚠ 需要配置图片生成端点</h3>
               <button
-                onClick={() => setShowEndpointConfig(false)}
+                onClick={() => setShowConfigHelp(false)}
                 className="p-1 hover:bg-gray-100 rounded"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  {selectedModel} 端点路径
-                </label>
-                <input
-                  type="text"
-                  value={currentEndpoint}
-                  onChange={(e) => setCurrentEndpoint(e.target.value)}
-                  placeholder="例如: v1/ai/eljciTfuqTxBSjXl"
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <p className="text-sm text-blue-700 mb-2">
-                  📋 <strong>配置说明:</strong>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-blue-700 mb-3">
+                  🎨 <strong>MJ图片生成需要配置专用端点</strong>
                 </p>
-                <p className="text-xs text-blue-600">
-                  • <strong>MJ模型</strong>: 需要配置专用的endpoint路径<br/>
-                  • <strong>路径格式</strong>: 仅填写路径部分，如 v1/ai/eljciTfuqTxBSjXl<br/>
-                  • <strong>完整地址</strong>: {apiConfig?.endpoint}/[您填写的路径]
+                <p className="text-xs text-blue-600 mb-3">
+                  为了使用MaaS-MJ图片生成功能，需要先在统一配置管理中设置MJ端点路径。
+                </p>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <p><strong>配置步骤：</strong></p>
+                  <p>1. 点击页面左上角的设置按钮</p>
+                  <p>2. 选择"图片生成"标签页</p>
+                  <p>3. 填写MJ端点路径</p>
+                  <p>4. 保存配置后即可使用MJ图片生成</p>
+                </div>
+              </div>
+
+              <div className="bg-green-50 p-3 rounded-lg">
+                <p className="text-xs text-green-700">
+                  💡 <strong>温馨提示</strong>: 统一配置管理可以一次性设置所有功能的端点，避免重复配置。
                 </p>
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row sm:justify-end gap-2 mt-6">
+
+            <div className="flex justify-end gap-2 mt-6">
               <button
-                onClick={() => setShowEndpointConfig(false)}
-                className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:text-gray-800 text-center"
+                onClick={() => setShowConfigHelp(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
-                取消
-              </button>
-              <button
-                onClick={handleSaveEndpoint}
-                disabled={!currentEndpoint.trim()}
-                className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 flex items-center justify-center gap-1"
-              >
-                <Save className="w-4 h-4" />
-                保存
+                我知道了
               </button>
             </div>
           </div>
