@@ -192,15 +192,15 @@ export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
   const getTypeColor = (type: SearchResult['type']) => {
     switch (type) {
       case 'conversation':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
+        return 'bg-blue-100 text-blue-700';
       case 'search':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+        return 'bg-green-100 text-green-700';
       case 'image':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400';
+        return 'bg-purple-100 text-purple-700';
       case 'video':
-        return 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400';
+        return 'bg-orange-100 text-orange-700';
       default:
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
+        return 'bg-gray-100 text-gray-700';
     }
   };
 
@@ -239,7 +239,7 @@ export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
     <div className="relative w-full max-w-2xl mx-auto">
       {/* 搜索输入框 */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
           ref={inputRef}
           type="text"
@@ -247,28 +247,26 @@ export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="搜索对话、搜索记录、生成内容..."
-          className="w-full pl-10 pr-10 py-3 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded-lg text-gray-900 dark:text-dark-text placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+          className="w-full pl-10 pr-10 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
         />
         {query && (
           <button
             onClick={() => setQuery('')}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors duration-200"
           >
-            <X className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+            <X className="w-4 h-4 text-gray-400" />
           </button>
         )}
       </div>
 
       {/* 搜索结果 */}
       {results.length > 0 && (
-        <div className="absolute top-full mt-2 w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto animate-slide-in">
+        <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto animate-slide-in">
           {results.map((result, index) => (
             <button
               key={result.id}
               onClick={() => handleSelectResult(result)}
-              className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
-                index === selectedIndex ? 'bg-primary-50 dark:bg-primary-900/20' : ''
-              }`}
+              className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 last:border-b-0 ${index === selectedIndex ? 'bg-primary-50' : ''}`}
             >
               <div className="flex items-start gap-3">
                 <div className={`p-2 rounded-lg ${getTypeColor(result.type)}`}>
@@ -276,19 +274,19 @@ export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-gray-900 dark:text-dark-text truncate">
+                    <h4 className="font-medium text-gray-900 truncate">
                       {result.title}
                     </h4>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
                       <Clock className="w-3 h-3" />
                       {formatTime(result.timestamp)}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                  <p className="text-sm text-gray-600 line-clamp-2">
                     {result.content}
                   </p>
                   {result.modelUsed && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-gray-500 mt-1">
                       {result.modelUsed}
                     </p>
                   )}
@@ -301,9 +299,9 @@ export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
 
       {/* 空状态 */}
       {query && results.length === 0 && (
-        <div className="absolute top-full mt-2 w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-lg z-50 p-6 text-center animate-fade-in">
-          <Search className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-6 text-center animate-fade-in">
+          <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">
             没有找到与 "{query}" 相关的记录
           </p>
         </div>

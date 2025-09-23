@@ -8,7 +8,6 @@ import { VideoGenerator } from '@/components/VideoGenerator';
 import { SearchInterface } from '@/components/SearchInterface';
 import { ApiConfigModal } from '@/components/ApiConfig';
 import { MessageCircle, Image, Video, Search, Settings, Trash2, Menu, X } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalSearchModal } from '@/components/GlobalSearchModal';
 import { useKeyboardShortcuts, defaultShortcuts } from '@/hooks/useKeyboardShortcuts';
 
@@ -64,37 +63,36 @@ export default function Home() {
   const currentConv = conversations.find(conv => conv.id === currentConversation);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-dark-bg md:flex-row transition-colors duration-300 page-enter">
+    <div className="flex flex-col h-screen bg-gray-50 md:flex-row page-enter">
       {/* 移动端顶部导航栏 */}
-      <div className="md:hidden bg-white dark:bg-dark-card border-b dark:border-dark-border px-4 py-3 flex items-center justify-between slide-up">
-        <h1 className="text-lg font-bold text-gray-900 dark:text-dark-text">小宿AI助手</h1>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <button
-            onClick={() => setShowApiConfig(true)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 button-press focus-ring"
-            title="API设置"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setShowSidebar(!showSidebar)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 button-press focus-ring"
-          >
-            {showSidebar ? <X className="w-4 h-4 text-gray-600 dark:text-dark-text" /> : <Menu className="w-4 h-4 text-gray-600 dark:text-dark-text" />}
-          </button>
+      <div className="md:hidden bg-white border-b px-4 py-3 flex items-center justify-between slide-up">
+          <h1 className="text-lg font-bold text-gray-900">小宿AI助手</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowApiConfig(true)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 button-press focus-ring"
+              title="API设置"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 button-press focus-ring"
+            >
+              {showSidebar ? <X className="w-4 h-4 text-gray-600" /> : <Menu className="w-4 h-4 text-gray-600" />}
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* 移动端标签页导航 */}
-      <div className="md:hidden bg-white dark:bg-dark-card border-b dark:border-dark-border slide-up">
+      <div className="md:hidden bg-white border-b slide-up">
         <div className="flex overflow-x-auto">
           <button
             onClick={() => { setCurrentTab('chat'); setShowSidebar(false); }}
             className={`flex items-center justify-center gap-1 py-3 px-4 text-sm font-medium transition-all duration-300 whitespace-nowrap border-b-2 button-press ${
               currentTab === 'chat'
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 animate-bounce-subtle'
-                : 'border-transparent text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                ? 'border-primary-500 text-primary-600 bg-primary-50 animate-bounce-subtle'
+                : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
             <MessageCircle className="w-4 h-4" />
@@ -104,8 +102,8 @@ export default function Home() {
             onClick={() => { setCurrentTab('search'); setShowSidebar(false); }}
             className={`flex items-center justify-center gap-1 py-3 px-4 text-sm font-medium transition-colors whitespace-nowrap border-b-2 ${
               currentTab === 'search'
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-transparent text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text'
+                ? 'border-primary-500 text-primary-600 bg-primary-50'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
             <Search className="w-4 h-4" />
@@ -115,8 +113,8 @@ export default function Home() {
             onClick={() => { setCurrentTab('image'); setShowSidebar(false); }}
             className={`flex items-center justify-center gap-1 py-3 px-4 text-sm font-medium transition-colors whitespace-nowrap border-b-2 ${
               currentTab === 'image'
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-transparent text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text'
+                ? 'border-primary-500 text-primary-600 bg-primary-50'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
             <Image className="w-4 h-4" />
@@ -126,8 +124,8 @@ export default function Home() {
             onClick={() => { setCurrentTab('video'); setShowSidebar(false); }}
                           className={`flex items-center justify-center gap-1 py-1.5 px-3 text-xs font-medium transition-colors rounded-lg ${
                 currentTab === 'video'
-                  ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
-                  : 'text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text'
+                  ? 'text-primary-600 bg-primary-50'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
           >
             <Video className="w-4 h-4" />
@@ -140,32 +138,31 @@ export default function Home() {
         showSidebar ? 'fixed inset-0 z-50 bg-black bg-opacity-50 md:relative md:bg-transparent' : 'hidden'
       } md:block md:w-80 md:relative`}>
         <div className={`${
-          showSidebar ? 'w-80 h-full bg-white dark:bg-dark-card shadow-xl' : 'w-full h-full bg-white dark:bg-dark-card'
-        } md:w-80 md:bg-white md:dark:bg-dark-card md:border-r md:dark:border-dark-border flex flex-col transition-colors duration-300`}>
+        showSidebar ? 'w-80 h-full bg-white shadow-xl' : 'w-full h-full bg-white'
+      } md:w-80 md:bg-white md:border-r flex flex-col`}>
           {/* 桌面端头部 */}
-          <div className="hidden md:block p-4 border-b dark:border-dark-border">
+          <div className="hidden md:block p-4 border-b">
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-dark-text">小宿AI助手</h1>
+              <h1 className="text-xl font-bold text-gray-900">小宿AI助手</h1>
               <div className="flex items-center gap-2">
-                <ThemeToggle />
                 <button
                   onClick={() => setShowApiConfig(true)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
                   title="API设置"
                 >
-                  <Settings className="w-4 h-4 text-gray-600 dark:text-dark-text" />
+                  <Settings className="w-4 h-4 text-gray-600" />
                 </button>
               </div>
             </div>
 
             {/* 桌面端标签页切换 */}
-            <div className="grid grid-cols-2 gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="grid grid-cols-2 gap-1 bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setCurrentTab('chat')}
                 className={`flex items-center justify-center gap-1 py-2 px-2 rounded text-xs font-medium transition-colors ${
                   currentTab === 'chat'
-                    ? 'bg-white dark:bg-dark-bg text-primary-600 dark:text-primary-400 shadow-sm'
-                    : 'text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <MessageCircle className="w-3 h-3" />
@@ -175,8 +172,8 @@ export default function Home() {
                 onClick={() => setCurrentTab('search')}
                 className={`flex items-center justify-center gap-1 py-2 px-2 rounded text-xs font-medium transition-colors ${
                   currentTab === 'search'
-                    ? 'bg-white dark:bg-dark-bg text-primary-600 dark:text-primary-400 shadow-sm'
-                    : 'text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <Search className="w-3 h-3" />
@@ -186,8 +183,8 @@ export default function Home() {
                 onClick={() => setCurrentTab('image')}
                 className={`flex items-center justify-center gap-1 py-2 px-2 rounded text-xs font-medium transition-colors ${
                   currentTab === 'image'
-                    ? 'bg-white dark:bg-dark-bg text-primary-600 dark:text-primary-400 shadow-sm'
-                    : 'text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <Image className="w-3 h-3" />
@@ -197,8 +194,8 @@ export default function Home() {
                 onClick={() => setCurrentTab('video')}
                 className={`flex items-center justify-center gap-1 py-2 px-2 rounded text-xs font-medium transition-colors ${
                   currentTab === 'video'
-                    ? 'bg-white dark:bg-dark-bg text-primary-600 dark:text-primary-400 shadow-sm'
-                    : 'text-gray-600 dark:text-dark-muted hover:text-gray-900 dark:hover:text-dark-text'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <Video className="w-3 h-3" />
@@ -208,13 +205,13 @@ export default function Home() {
           </div>
 
           {/* 移动端侧边栏头部 */}
-          <div className="md:hidden p-4 border-b dark:border-dark-border flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text">历史记录</h2>
+          <div className="md:hidden p-4 border-b flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">历史记录</h2>
             <button
               onClick={() => setShowSidebar(false)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             >
-              <X className="w-4 h-4 text-gray-600 dark:text-dark-text" />
+              <X className="w-4 h-4 text-gray-600" />
             </button>
           </div>
 
@@ -223,12 +220,12 @@ export default function Home() {
             {currentTab === 'chat' && (
               <div className="h-full flex flex-col">
                 {/* 对话列表头部 */}
-                <div className="p-4 border-b dark:border-dark-border flex items-center justify-between">
-                  <h3 className="font-medium text-gray-900 dark:text-dark-text">对话历史</h3>
+                <div className="p-4 border-b flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900">对话历史</h3>
                   {conversations.length > 0 && (
                     <button
                       onClick={clearConversations}
-                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-500 dark:text-red-400 transition-colors duration-200"
+                      className="p-1 hover:bg-gray-100 rounded text-red-500 transition-colors duration-200"
                       title="清空所有对话"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -399,7 +396,7 @@ export default function Home() {
       </div>
 
       {/* 主内容区域 */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 bg-gray-50">
         {currentTab === 'chat' && <ChatInterface />}
         {currentTab === 'image' && <ImageGenerator />}
         {currentTab === 'video' && <VideoGenerator />}

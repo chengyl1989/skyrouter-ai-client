@@ -6,7 +6,6 @@ module.exports = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  darkMode: 'class', // 启用基于class的深色模式
   theme: {
     extend: {
       colors: {
@@ -22,14 +21,6 @@ module.exports = {
           700: '#1d4ed8',
           800: '#1e40af',
           900: '#1e3a8a',
-        },
-        // 深色模式背景色
-        dark: {
-          bg: '#0f172a',      // 主背景
-          card: '#1e293b',    // 卡片背景
-          border: '#334155',  // 边框
-          text: '#f1f5f9',    // 主文字
-          muted: '#64748b',   // 次要文字
         }
       },
       animation: {

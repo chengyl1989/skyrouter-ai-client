@@ -52,19 +52,19 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-bg flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white dark:bg-dark-card rounded-lg shadow-lg p-6 text-center animate-slide-up">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center animate-slide-up">
             <div className="flex justify-center mb-4">
-              <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
+              <div className="p-3 bg-red-100 rounded-full">
                 <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
             </div>
 
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-dark-text mb-2">
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">
               哎呀，出错了！
             </h1>
 
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-gray-600 mb-6">
               应用程序遇到了意外错误，请尝试刷新页面或返回首页。
             </p>
 
@@ -79,7 +79,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <button
                 onClick={this.handleGoHome}
-                className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 button-press focus-ring"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 button-press focus-ring"
               >
                 <Home className="w-4 h-4" />
                 返回首页
@@ -87,7 +87,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <button
                 onClick={this.handleReset}
-                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
               >
                 尝试恢复
               </button>
@@ -95,10 +95,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-6 text-left">
-                <summary className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer">
+                <summary className="text-sm text-gray-500 cursor-pointer">
                   错误详情 (开发模式)
                 </summary>
-                <pre className="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded overflow-auto max-h-32">
+                <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-auto max-h-32">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>
