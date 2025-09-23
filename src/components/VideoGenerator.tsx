@@ -190,14 +190,21 @@ export function VideoGenerator() {
           }
         }
 
+        // 创建headers对象
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiConfig.apiKey}`,
+          'X-API-Endpoint': apiConfig.endpoint
+        };
+        
+        // 只有当hlEndpointPath存在时才添加到headers
+        if (hlEndpointPath) {
+          headers['X-HL-Endpoint-Path'] = hlEndpointPath;
+        }
+        
         const response = await fetch('/api/videos/hl', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiConfig.apiKey}`,
-            'X-API-Endpoint': apiConfig.endpoint,
-            'X-HL-Endpoint-Path': hlEndpointPath,
-          },
+          headers,
           body: JSON.stringify(requestData)
         });
 
@@ -250,14 +257,21 @@ export function VideoGenerator() {
           }
         }
 
+        // 创建headers对象
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiConfig.apiKey}`,
+          'X-API-Endpoint': apiConfig.endpoint
+        };
+        
+        // 只有当klEndpointPath存在时才添加到headers
+        if (klEndpointPath) {
+          headers['X-KL-Endpoint-Path'] = klEndpointPath;
+        }
+        
         const response = await fetch('/api/videos/kl', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiConfig.apiKey}`,
-            'X-API-Endpoint': apiConfig.endpoint,
-            'X-KL-Endpoint-Path': klEndpointPath,
-          },
+          headers,
           body: JSON.stringify(requestData)
         });
 

@@ -1,11 +1,10 @@
-'use client';
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@/store/useStore';
-import { useModels } from '@/hooks/useModels';
 import { createApiClient } from '@/lib/api';
+import { categorizeModels } from '@/lib/modelUtils';
+import { useModels } from '@/hooks/useModels';
 import { ChatMessage } from '@/types';
-import { Send, User, Bot, Loader2, RefreshCw } from 'lucide-react';
+import { Send, Loader2, RefreshCw, User, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 export function ChatInterface() {
@@ -16,6 +15,7 @@ export function ChatInterface() {
     addConversation,
     addMessage,
     updateMessage,
+    updateConversationTimestamp,
     setCurrentConversation,
   } = useStore();
 
@@ -43,11 +43,13 @@ export function ChatInterface() {
 
   const createNewConversation = () => {
     const id = generateId();
+    const now = new Date();
     const newConversation = {
       id,
       title: '新对话',
       messages: [],
-      createdAt: new Date(),
+      createdAt: now,
+      updatedAt: now, // 添加updatedAt属性
       model: selectedModel,
     };
     addConversation(newConversation);
@@ -69,6 +71,9 @@ export function ChatInterface() {
     addMessage(conversationId, userMessage);
     setInput('');
     setIsLoading(true);
+
+    // 更新对话的更新时间
+    updateConversationTimestamp(conversationId);
 
     try {
       const client = createApiClient(apiConfig);
@@ -116,6 +121,8 @@ export function ChatInterface() {
               if (content) {
                 accumulatedContent += content;
                 updateMessage(conversationId, assistantMessage.id, accumulatedContent);
+                // 更新对话的更新时间
+                updateConversationTimestamp(conversationId);
               }
             } catch (error) {
               console.error('Parse streaming response error:', error);
@@ -148,7 +155,7 @@ export function ChatInterface() {
 
   if (!apiConfig) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
         请先配置 API 设置
       </div>
     );
@@ -157,21 +164,21 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-full">
       {/* 模型选择器 */}
-      <div className="p-3 sm:p-4 border-b bg-white shadow-sm">
+      <div className="p-3 sm:p-4 border-b dark:border-dark-border bg-white dark:bg-dark-card shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2 min-w-0">
-            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">聊天模型:</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-dark-text whitespace-nowrap">聊天模型:</label>
             {modelsLoading ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-sm text-gray-500">加载模型中...</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">加载模型中...</span>
               </div>
             ) : modelsError ? (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-red-500 truncate">{modelsError}</span>
+                <span className="text-sm text-red-500 dark:text-red-400 truncate">{modelsError}</span>
                 <button
                   onClick={refreshModels}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                   title="重试获取模型"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -181,7 +188,7 @@ export function ChatInterface() {
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-0"
+                className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 dark:border-dark-border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-dark-card text-gray-900 dark:text-dark-text min-w-0"
                 disabled={categorizedModels.chat.length === 0}
               >
                 {categorizedModels.chat.length === 0 ? (
@@ -198,7 +205,7 @@ export function ChatInterface() {
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 sm:ml-auto">
-            <span className="text-xs text-gray-500 whitespace-nowrap">
+            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
               ({categorizedModels.chat.length} 个可用模型)
             </span>
             <button
@@ -212,7 +219,7 @@ export function ChatInterface() {
       </div>
 
       {/* 消息列表 */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 dark:bg-dark-bg">
         {currentConv?.messages.map((message) => (
           <div
             key={message.id}
@@ -225,18 +232,18 @@ export function ChatInterface() {
                 message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
               }`}
             >
-              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center flex-shrink-0 shadow-sm">
                 {message.role === 'user' ? (
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-200" />
                 ) : (
-                  <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                  <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-200" />
                 )}
               </div>
               <div
                 className={`p-3 sm:p-4 rounded-lg shadow-sm ${
                   message.role === 'user'
                     ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                    : 'bg-white text-gray-900 border border-gray-200'
+                    : 'bg-white dark:bg-dark-card text-gray-900 dark:text-dark-text border border-gray-200 dark:border-dark-border'
                 }`}
               >
                 {message.role === 'assistant' ? (
@@ -252,10 +259,10 @@ export function ChatInterface() {
         ))}
         {isLoading && (
           <div className="flex gap-2 sm:gap-3 justify-start">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shadow-sm">
-              <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center shadow-sm">
+              <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-200" />
             </div>
-            <div className="bg-white border border-gray-200 p-3 sm:p-4 rounded-lg shadow-sm">
+            <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border p-3 sm:p-4 rounded-lg shadow-sm">
               <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
             </div>
           </div>
@@ -264,14 +271,14 @@ export function ChatInterface() {
       </div>
 
       {/* 输入框 */}
-      <div className="p-3 sm:p-4 border-t bg-white shadow-sm">
+      <div className="p-3 sm:p-4 border-t dark:border-dark-border bg-white dark:bg-dark-card shadow-sm">
         <div className="flex gap-2 sm:gap-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="输入消息..."
-            className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base min-h-[44px] max-h-32"
+            className="flex-1 p-3 border border-gray-300 dark:border-dark-border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base min-h-[44px] max-h-32 bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text placeholder-gray-500 dark:placeholder-gray-400"
             rows={2}
             disabled={isLoading}
           />

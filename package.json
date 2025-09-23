@@ -23,34 +23,35 @@
     "rollback:version": "echo 'Rolling back to specified version'"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "next": "14.0.0",
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "tailwindcss": "^3.3.0",
     "autoprefixer": "^10.0.1",
-    "postcss": "^8.0.0",
-    "lucide-react": "^0.263.1",
     "axios": "^1.6.0",
-    "zustand": "^4.4.0",
-    "react-markdown": "^9.0.0"
+    "lucide-react": "^0.263.1",
+    "next": "14.0.0",
+    "postcss": "^8.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.0.0",
+    "zustand": "^4.4.0"
   },
   "devDependencies": {
-    "eslint": "^8.0.0",
-    "eslint-config-next": "14.0.0",
+    "@playwright/test": "^1.40.0",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.5.1",
     "@types/jest": "^29.5.8",
+    "eslint": "8.57.1",
+    "eslint-config-next": "14.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^8.0.3",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/jest-dom": "^6.1.4",
-    "@testing-library/user-event": "^14.5.1",
+    "lint-staged": "^15.1.0",
     "msw": "^2.0.8",
-    "@playwright/test": "^1.40.0",
-    "prettier": "^3.1.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.1.0"
+    "prettier": "^3.1.0"
   }
 }

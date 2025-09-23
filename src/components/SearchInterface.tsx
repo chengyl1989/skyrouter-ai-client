@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { useModels } from '@/hooks/useModels';
+import { useError } from '@/contexts/ErrorContext';
 import { Search, Loader2, RefreshCw, ExternalLink, Clock, Globe, Settings, X, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -33,6 +34,7 @@ interface SearchInterfaceProps {
 export function SearchInterface({ selectedSearchResult }: SearchInterfaceProps) {
   const { apiConfig, addSearchResult, setApiConfig } = useStore();
   const { categorizedModels, loading: modelsLoading, error: modelsError, refresh: refreshModels } = useModels(true);
+  const { handleApiError, notifySuccess } = useError();
   
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -54,14 +56,14 @@ export function SearchInterface({ selectedSearchResult }: SearchInterfaceProps) 
   // 获取搜索模型
   const searchModels = categorizedModels.other.filter(model => {
     const id = model.id.toLowerCase();
-    return id === 'smartsearch' || id === 'fulltextsearch';
+    return id === 'smartsearch' || id === 'fulltextsearch' || model.id === 'FullTextSearch' || model.id === 'SmartSearch';
   });
 
   // 设置默认模型
   useEffect(() => {
     if (searchModels.length > 0 && !selectedModel) {
       const smartSearch = searchModels.find(model =>
-        model.id.toLowerCase() === 'smartsearch'
+        model.id.toLowerCase() === 'smartsearch' || model.id === 'SmartSearch'
       );
       setSelectedModel(smartSearch ? smartSearch.id : searchModels[0].id);
     }
@@ -115,16 +117,9 @@ export function SearchInterface({ selectedSearchResult }: SearchInterfaceProps) 
 
       addSearchResult(searchResult);
       setQuery('');
+      notifySuccess('搜索完成', `成功使用 ${selectedModel} 搜索"${query}"`);
     } catch (error) {
-      console.error('Search error:', error);
-      const errorResult: SearchResult = {
-        id: generateId(),
-        query,
-        content: `搜索出错: ${error instanceof Error ? error.message : '未知错误'}`,
-        model: selectedModel,
-        timestamp: new Date(),
-      };
-      addSearchResult(errorResult);
+      handleApiError(error, '搜索失败，请重试');
     } finally {
       setIsSearching(false);
     }
@@ -529,7 +524,7 @@ export function SearchInterface({ selectedSearchResult }: SearchInterfaceProps) 
                       </div>
 
                       {/* 分隔线 */}
-                      {index < selectedSearchResult.results.length - 1 && (
+                      {selectedSearchResult?.results && index < selectedSearchResult.results.length - 1 && (
                         <div className="mt-4 border-b border-gray-100"></div>
                       )}
                     </div>

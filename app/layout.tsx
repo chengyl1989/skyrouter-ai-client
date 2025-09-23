@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '@/globals.css'
+import '@/styles/animations.css'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import { ErrorProvider } from '@/contexts/ErrorContext'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,8 +25,14 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body className={inter.className}>
-        {children}
+      <body className={`${inter.className} bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text transition-colors duration-300`}>
+        <ErrorBoundary>
+          <ThemeProvider>
+            <ErrorProvider>
+              {children}
+            </ErrorProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )
