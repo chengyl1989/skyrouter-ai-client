@@ -11,6 +11,8 @@ export interface ApiConfig {
   mjModelEndpoints?: Record<string, string>;
   // 统一的搜索endpoint配置 (智能搜索和全文搜索共用)
   searchEndpointId?: string;
+  // Bing搜索API密钥
+  bingSearchKey?: string;
 }
 
 // 模型信息

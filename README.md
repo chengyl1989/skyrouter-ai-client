@@ -57,7 +57,7 @@ npm install
 npm run dev
 ```
 
-应用将在 http://localhost:3000 启动
+应用将在 http://localhost:8080 启动
 
 ### 配置 API
 

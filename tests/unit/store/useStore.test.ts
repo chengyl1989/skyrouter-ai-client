@@ -14,12 +14,13 @@ describe('useStore', () => {
 
   it('initializes with default state', () => {
     const { result } = renderHook(() => useStore())
-    
+
     expect(result.current.apiConfig).toBeNull()
     expect(result.current.currentTab).toBe('chat')
     expect(result.current.conversations).toEqual([])
     expect(result.current.currentConversation).toBeNull()
     expect(result.current.generatedImages).toEqual([])
+    expect(result.current.generatedVideos).toEqual([])
     expect(result.current.searchResults).toEqual([])
   })
 
@@ -50,7 +51,7 @@ describe('useStore', () => {
 
   it('adds and manages conversations', () => {
     const { result } = renderHook(() => useStore())
-    
+
     const testMessage = {
       id: '1',
       role: 'user' as const,
@@ -59,7 +60,7 @@ describe('useStore', () => {
     }
 
     act(() => {
-      result.current.addMessage(testMessage)
+      result.current.addMessage('test-conversation', testMessage)
     })
 
     expect(result.current.conversations).toHaveLength(1)
@@ -78,7 +79,7 @@ describe('useStore', () => {
     }
 
     act(() => {
-      result.current.addMessage(testMessage)
+      result.current.addMessage('test-conversation', testMessage)
     })
 
     const conversationId = result.current.conversations[0].id

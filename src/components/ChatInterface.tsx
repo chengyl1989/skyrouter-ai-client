@@ -5,8 +5,9 @@ import { useStore } from '@/store/useStore';
 import { useModels } from '@/hooks/useModels';
 import { createApiClient } from '@/lib/api';
 import { ChatMessage } from '@/types';
-import { Send, User, Bot, Loader2, RefreshCw } from 'lucide-react';
+import { Send, User, Bot, Loader2, RefreshCw, Sparkles, MessageSquare } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { motion } from 'framer-motion';
 
 export function ChatInterface() {
   const {
@@ -58,7 +59,7 @@ export function ChatInterface() {
     if (!input.trim() || !apiConfig) return;
 
     const conversationId = currentConversation || createNewConversation();
-    
+
     const userMessage: ChatMessage = {
       id: generateId(),
       role: 'user',
@@ -148,7 +149,7 @@ export function ChatInterface() {
 
   if (!apiConfig) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
         请先配置 API 设置
       </div>
     );
@@ -156,32 +157,34 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 模型选择器 */}
-      <div className="p-3 sm:p-4 border-b bg-white shadow-sm">
+      <div className="p-4 border-b dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2 min-w-0">
-            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">聊天模型:</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-purple-500" />
+              聊天模型:
+            </label>
             {modelsLoading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-sm text-gray-500">加载模型中...</span>
+              <div className="flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 px-3 py-1.5 rounded-lg">
+                <Loader2 className="w-4 h-4 animate-spin text-purple-600 dark:text-purple-400" />
+                <span className="text-sm text-purple-700 dark:text-purple-300">加载模型中...</span>
               </div>
             ) : modelsError ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-red-500 truncate">{modelsError}</span>
+              <div className="flex items-center gap-2 bg-red-100 dark:bg-red-900/30 px-3 py-1.5 rounded-lg">
+                <span className="text-sm text-red-700 dark:text-red-300 truncate">{modelsError}</span>
                 <button
                   onClick={refreshModels}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  className="p-1 hover:bg-red-200 dark:hover:bg-red-800/50 rounded-lg transition-colors"
                   title="重试获取模型"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4 text-red-600 dark:text-red-400" />
                 </button>
               </div>
             ) : (
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-0"
+                className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 modern-input"
                 disabled={categorizedModels.chat.length === 0}
               >
                 {categorizedModels.chat.length === 0 ? (
@@ -196,27 +199,32 @@ export function ChatInterface() {
               </select>
             )}
           </div>
-          
+
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 sm:ml-auto">
-            <span className="text-xs text-gray-500 whitespace-nowrap">
+            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
               ({categorizedModels.chat.length} 个可用模型)
             </span>
-            <button
+            <motion.button
               onClick={createNewConversation}
-              className="px-3 py-1.5 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 whitespace-nowrap"
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 whitespace-nowrap flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
+              <Sparkles className="w-4 h-4" />
               新对话
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
 
-      {/* 消息列表 */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900 dark:to-gray-800">
         {currentConv?.messages.map((message) => (
-          <div
+          <motion.div
             key={message.id}
-            className={`flex gap-2 sm:gap-3 ${
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={`flex gap-3 ${
               message.role === 'user' ? 'justify-end' : 'justify-start'
             }`}
           >
@@ -225,18 +233,23 @@ export function ChatInterface() {
                 message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
               }`}
             >
-              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ${
+                message.role === 'user'
+                  ? 'bg-gradient-to-br from-blue-500 to-cyan-500'
+                  : 'bg-gradient-to-br from-purple-500 to-pink-500'
+              }`}>
                 {message.role === 'user' ? (
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                  <User className="w-4 h-4 text-white" />
                 ) : (
-                  <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                  <Bot className="w-4 h-4 text-white" />
                 )}
               </div>
-              <div
-                className={`p-3 sm:p-4 rounded-lg shadow-sm ${
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className={`p-4 rounded-2xl shadow-lg backdrop-blur-sm ${
                   message.role === 'user'
-                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                    : 'bg-white text-gray-900 border border-gray-200'
+                    ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-blue-500/25'
+                    : 'bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 border border-gray-200/50 dark:border-gray-700/50'
                 }`}
               >
                 {message.role === 'assistant' ? (
@@ -246,42 +259,52 @@ export function ChatInterface() {
                 ) : (
                   <p className="whitespace-pre-wrap text-sm sm:text-base">{message.content}</p>
                 )}
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         ))}
         {isLoading && (
-          <div className="flex gap-2 sm:gap-3 justify-start">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shadow-sm">
-              <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex gap-3 justify-start"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <Bot className="w-4 h-4 text-white" />
             </div>
-            <div className="bg-white border border-gray-200 p-3 sm:p-4 rounded-lg shadow-sm">
-              <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+            <div className="bg-white/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50 p-4 rounded-2xl shadow-lg backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+                <span className="text-sm text-gray-600 dark:text-gray-400">AI 正在思考中...</span>
+              </div>
             </div>
-          </div>
+          </motion.div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 输入框 */}
-      <div className="p-3 sm:p-4 border-t bg-white shadow-sm">
-        <div className="flex gap-2 sm:gap-3">
-          <textarea
+      <div className="p-4 border-t dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm shadow-lg">
+        <div className="flex gap-3">
+          <motion.textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="输入消息..."
-            className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base min-h-[44px] max-h-32"
+            className="flex-1 p-4 border border-gray-300 dark:border-gray-600 rounded-2xl resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm min-h-[56px] max-h-32 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 modern-input shadow-sm"
             rows={2}
             disabled={isLoading}
+            whileFocus={{ scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 300 }}
           />
-          <button
+          <motion.button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-shrink-0 min-w-[44px] sm:min-w-[48px] flex items-center justify-center"
+            className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex-shrink-0 min-w-[56px] flex items-center justify-center shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Send className="w-4 h-4" />
-          </button>
+            <Send className="w-5 h-5" />
+          </motion.button>
         </div>
       </div>
     </div>

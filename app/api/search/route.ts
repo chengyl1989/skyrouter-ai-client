@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     // Get API configuration from headers
     const apiKey = request.headers.get('Authorization')?.replace('Bearer ', '');
     const endpoint = request.headers.get('X-API-Endpoint');
-    const searchEndpointId = request.headers.get('X-Search-Endpoint-Id');
+    let searchEndpointId = request.headers.get('X-Search-Endpoint-Id');
     
     if (!apiKey || !endpoint) {
       return NextResponse.json({ error: 'Missing API configuration' }, { status: 400 });
@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (!searchEndpointId) {
-      return NextResponse.json({ 
-        error: 'Missing search endpoint configuration. Please configure the search endpoint ID in settings.' 
+      return NextResponse.json({
+        error: 'Missing search endpoint configuration. Please configure the search endpoint ID in settings.'
       }, { status: 400 });
     }
 
@@ -68,18 +68,48 @@ export async function POST(request: NextRequest) {
     console.log('Search URL:', fullUrl);
 
     // 调用搜索API
-    const searchResponse = await fetch(fullUrl, {
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'pragma': 'no-cache'
+    };
+
+    // 尝试使用不同的授权方式
+    // 1. 首先尝试不带授权头
+    let searchResponse = await fetch(fullUrl, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Accept': 'application/json',
-        'pragma': 'no-cache'
-      },
+      headers
     });
+
+    // 如果401错误，尝试Bearer token授权
+    if (searchResponse.status === 401) {
+      searchResponse = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          ...headers,
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+    }
+
+    // 如果还是401，尝试API Key授权
+    if (searchResponse.status === 401) {
+      searchResponse = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          ...headers,
+          'X-API-Key': apiKey
+        }
+      });
+    }
 
     if (!searchResponse.ok) {
       const errorData = await searchResponse.text();
-      console.error('Search API error:', errorData);
+      console.error('Search API error:', {
+        status: searchResponse.status,
+        statusText: searchResponse.statusText,
+        error: errorData,
+        url: fullUrl
+      });
       throw new Error(`搜索请求失败: ${searchResponse.status} ${searchResponse.statusText}`);
     }
 

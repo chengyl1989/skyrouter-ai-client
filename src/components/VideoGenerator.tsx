@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { useModels } from '@/hooks/useModels';
 import { createApiClient } from '@/lib/api';
-import { Send, Download, Loader2, Video as VideoIcon, RefreshCw, Upload, X } from 'lucide-react';
+import { Send, Download, Loader2, Video as VideoIcon, RefreshCw, Upload, X, Film, Wand2, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface GeneratedVideo {
   id: string;
@@ -190,14 +191,19 @@ export function VideoGenerator() {
           }
         }
 
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiConfig.apiKey}`,
+          'X-API-Endpoint': apiConfig.endpoint,
+        };
+
+        if (hlEndpointPath) {
+          headers['X-HL-Endpoint-Path'] = hlEndpointPath;
+        }
+
         const response = await fetch('/api/videos/hl', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiConfig.apiKey}`,
-            'X-API-Endpoint': apiConfig.endpoint,
-            'X-HL-Endpoint-Path': hlEndpointPath,
-          },
+          headers,
           body: JSON.stringify(requestData)
         });
 
@@ -250,14 +256,19 @@ export function VideoGenerator() {
           }
         }
 
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiConfig.apiKey}`,
+          'X-API-Endpoint': apiConfig.endpoint,
+        };
+
+        if (klEndpointPath) {
+          headers['X-KL-Endpoint-Path'] = klEndpointPath;
+        }
+
         const response = await fetch('/api/videos/kl', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiConfig.apiKey}`,
-            'X-API-Endpoint': apiConfig.endpoint,
-            'X-KL-Endpoint-Path': klEndpointPath,
-          },
+          headers,
           body: JSON.stringify(requestData)
         });
 
@@ -413,34 +424,43 @@ export function VideoGenerator() {
 
   if (!apiConfig) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
         请先配置 API 设置
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* 背景装饰 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 right-10 w-32 h-32 bg-gradient-to-br from-blue-300 to-cyan-300 rounded-full opacity-20 blur-3xl animate-float"></div>
+        <div className="absolute bottom-10 left-10 w-24 h-24 bg-gradient-to-br from-purple-300 to-pink-300 rounded-full opacity-20 blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+      </div>
+
       {/* 生成控制面板 */}
-      <div className="p-3 sm:p-4 border-b bg-white shadow-sm">
+      <div className="relative z-10 p-4 border-b dark:border-gray-700 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 backdrop-blur-sm shadow-lg">
         <div className="space-y-3 sm:space-y-4">
           {/* 模型选择 */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">视频模型:</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap flex items-center gap-2">
+              <Film className="w-4 h-4 text-blue-500" />
+              视频模型:
+            </label>
             {modelsLoading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                <span className="text-sm text-gray-500">加载模型中...</span>
+              <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg">
+                <Loader2 className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400" />
+                <span className="text-sm text-blue-700 dark:text-blue-300">加载模型中...</span>
               </div>
             ) : modelsError ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-red-500 truncate">{modelsError}</span>
+              <div className="flex items-center gap-2 bg-red-100 dark:bg-red-900/30 px-3 py-1.5 rounded-lg">
+                <span className="text-sm text-red-700 dark:text-red-300 truncate">{modelsError}</span>
                 <button
                   onClick={refreshModels}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  className="p-1 hover:bg-red-200 dark:hover:bg-red-800/50 rounded-lg transition-colors"
                   title="重试获取模型"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4 text-red-600 dark:text-red-400" />
                 </button>
               </div>
             ) : (
@@ -448,7 +468,7 @@ export function VideoGenerator() {
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
-                  className="w-full sm:flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className="w-full sm:flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 modern-input"
                   disabled={isGenerating || categorizedModels.video.length === 0}
                 >
                   {categorizedModels.video.length === 0 ? (
@@ -457,11 +477,11 @@ export function VideoGenerator() {
                     categorizedModels.video.map(model => {
                       const available = isModelAvailable(model.id);
                       return (
-                        <option 
-                          key={model.id} 
+                        <option
+                          key={model.id}
                           value={model.id}
                           disabled={!available}
-                          style={{ 
+                          style={{
                             color: available ? 'inherit' : '#9ca3af',
                             backgroundColor: available ? 'inherit' : '#f3f4f6'
                           }}
@@ -474,12 +494,12 @@ export function VideoGenerator() {
                 </select>
                 
                 <div className="flex items-center gap-2 sm:gap-4">
-                  <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                  <span className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap font-medium ${
                     selectedModel && (selectedModel.toLowerCase().includes('hl_video') || selectedModel.toLowerCase().includes('maas_hl_video'))
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
                       : selectedModel && isKLModel(selectedModel)
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-gray-100 text-gray-600'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                      : 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-lg shadow-gray-500/25'
                   }`}>
                     {selectedModel && (selectedModel.toLowerCase().includes('hl_video') ||
                                      selectedModel.toLowerCase().includes('maas_hl_video')) ? 'HL模型' :
@@ -490,7 +510,7 @@ export function VideoGenerator() {
                        ) : 'KL模型'
                      ) : '标准模型'}
                   </span>
-                  
+
                   {/* 配置状态指示器 */}
                   {selectedModel && (selectedModel.toLowerCase().includes('hl_video') ||
                                    selectedModel.toLowerCase().includes('maas_hl_video') ||
@@ -498,29 +518,32 @@ export function VideoGenerator() {
                                    selectedModel.toLowerCase().includes('maas_kl_') ||
                                    selectedModel.toLowerCase().includes('keling')) && (
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                      <span className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap font-medium ${
                         !needsConfiguration(selectedModel)
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-orange-100 text-orange-700'
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25'
+                          : 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25'
                       }`}>
                         {!needsConfiguration(selectedModel) ? '✓ 已配置' : '⚠ 需配置'}
                       </span>
 
                       {needsConfiguration(selectedModel) && (
-                        <button
+                        <motion.button
                           onClick={() => setShowConfigHelp(true)}
-                          className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                          className="text-xs px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all duration-300"
                           title="配置视频生成端点"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
+                          <Wand2 className="w-3 h-3 inline mr-1" />
                           点击配置
-                        </button>
+                        </motion.button>
                       )}
                     </div>
                   )}
-                  
+
                   {/* 显示不可用模型提示 */}
                   {selectedModel && !isModelAvailable(selectedModel) && (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-sm">
+                    <span className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl text-sm font-medium shadow-lg">
                       ⚠️ 该模型暂不可用
                     </span>
                   )}
@@ -532,49 +555,52 @@ export function VideoGenerator() {
 
           {/* 输入类型指示 */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">输入类型:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">输入类型:</span>
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm font-medium">
+              <span className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-blue-500/25">
                 {inputType === 'text' && '文本生视频 (T2V)'}
                 {inputType === 'image' && '图片生视频 (I2V)'}
                 {inputType === 'speech' && '语音生视频 (S2V)'}
               </span>
-              {selectedModel && !isModelAvailable(selectedModel) && (
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-sm">
-                  ⚠️ 该模型暂不可用
-                </span>
-              )}
             </div>
           </div>
 
           {/* 文件上传区域 */}
           {(inputType === 'image' || inputType === 'speech') && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 上传{inputType === 'image' ? '图片' : '音频'}:
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 hover:border-blue-400 transition-colors">
+              <motion.div
+                className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 {inputFile ? (
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-green-600 font-medium">✓</span>
-                      <span className="text-sm text-green-600 truncate">{inputFile.name}</span>
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <Zap className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-sm text-green-600 dark:text-green-400 truncate">{inputFile.name}</span>
                     </div>
-                    <button
+                    <motion.button
                       onClick={() => setInputFile(null)}
-                      className="text-red-500 hover:text-red-700 px-2 py-1 rounded transition-colors flex-shrink-0"
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-3 py-1 rounded-xl transition-colors flex-shrink-0"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       删除
-                    </button>
+                    </motion.button>
                   </div>
                 ) : (
-                  <label className="cursor-pointer flex flex-col items-center gap-3 py-2">
-                    <Upload className="w-8 h-8 text-gray-400" />
+                  <label className="cursor-pointer flex flex-col items-center gap-3 py-4">
+                    <Upload className="w-10 h-10 text-gray-400 dark:text-gray-500" />
                     <div className="text-center">
-                      <span className="text-sm text-gray-500 block">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 block font-medium">
                         点击上传{inputType === 'image' ? '图片' : '音频'}文件
                       </span>
-                      <span className="text-xs text-gray-400 mt-1 block">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 block">
                         {inputType === 'image' ? '支持 JPG, PNG, GIF, WebP' : '支持 MP3, WAV, M4A, OGG'}
                       </span>
                     </div>
@@ -586,103 +612,139 @@ export function VideoGenerator() {
                     />
                   </label>
                 )}
-              </div>
+              </motion.div>
             </div>
           )}
 
           {/* 文本描述输入 */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {inputType === 'text' ? '视频描述:' : '补充描述 (可选):'}
             </label>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <textarea
+            <div className="flex flex-col sm:flex-row gap-3">
+              <motion.textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder={
-                  inputType === 'text' 
-                    ? "描述你想要生成的视频..." 
+                  inputType === 'text'
+                    ? "描述你想要生成的视频..."
                     : "对视频内容的补充描述..."
                 }
-                className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
+                className="flex-1 p-4 border border-gray-300 dark:border-gray-600 rounded-2xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 text-sm sm:text-base min-h-[100px] max-h-32 placeholder-gray-500 dark:placeholder-gray-400 modern-input shadow-sm"
                 rows={3}
                 disabled={isGenerating}
+                whileFocus={{ scale: 1.01 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               />
-              <button
+              <motion.button
                 onClick={handleGenerate}
                 disabled={
-                  isGenerating || 
+                  isGenerating ||
                   !selectedModel ||
-                  !isModelAvailable(selectedModel) || 
-                  (!prompt.trim() && inputType === 'text') || 
+                  !isModelAvailable(selectedModel) ||
+                  (!prompt.trim() && inputType === 'text') ||
                   ((inputType === 'image' || inputType === 'speech') && !inputFile)
                 }
-                className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-h-[44px] whitespace-nowrap"
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-300 min-h-[56px] whitespace-nowrap shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {isGenerating ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="hidden sm:inline">生成中...</span>
+                    <span className="hidden sm:inline font-medium">生成中...</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
-                    <span className="hidden sm:inline">生成</span>
+                    <Zap className="w-4 h-4" />
+                    <span className="hidden sm:inline font-medium">生成视频</span>
                   </>
                 )}
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
       </div>
 
       {/* 视频展示区域 */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900 dark:to-gray-800 relative">
         {generatedVideos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <VideoIcon className="w-16 h-16 sm:w-20 sm:h-20 mb-4 opacity-50" />
-            <p className="text-lg sm:text-xl font-medium mb-2">还没有生成任何视频</p>
-            <p className="text-sm sm:text-base text-center">选择模型并输入内容开始创作</p>
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+            <div className="relative mb-6">
+              <VideoIcon className="w-20 h-20 sm:w-24 sm:h-24 opacity-30" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Zap className="w-8 h-8 text-blue-400 animate-pulse" />
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl font-medium mb-3 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">开始你的视频创作</p>
+            <p className="text-sm sm:text-base text-center max-w-md">选择模型并输入内容，让AI为你生成独特的视频作品</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {generatedVideos.map((video) => (
-              <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-video relative">
-                  <video
-                    src={video.url}
-                    controls
-                    className="w-full h-full object-cover"
-                    preload="metadata"
-                    poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3C/svg%3E"
-                  >
-                    您的浏览器不支持视频播放
-                  </video>
-                </div>
-                <div className="p-3 sm:p-4">
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
-                    {video.prompt}
-                  </p>
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs text-gray-500 mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate font-medium">{video.model}</span>
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">
+              <motion.div
+                key={video.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="group relative"
+              >
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50">
+                  {/* 视频容器 */}
+                  <div className="aspect-video relative overflow-hidden">
+                    <video
+                      src={video.url}
+                      controls
+                      className="w-full h-full object-cover"
+                      preload="metadata"
+                      poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3C/svg%3E"
+                    >
+                      您的浏览器不支持视频播放
+                    </video>
+
+                    {/* 悬浮遮罩 */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                    >
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <p className="text-white text-sm font-medium line-clamp-2">
+                          {video.prompt}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* 信息卡片 */}
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="px-2.5 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+                        {video.model}
+                      </span>
+                      <span className="px-2 py-1 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 rounded-full">
                         {video.inputType === 'text' && 'T2V'}
                         {video.inputType === 'image' && 'I2V'}
                         {video.inputType === 'speech' && 'S2V'}
                       </span>
                     </div>
-                    <span className="whitespace-nowrap">{video.createdAt.toLocaleString()}</span>
+
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {video.createdAt.toLocaleDateString()}
+                    </div>
+
+                    <motion.button
+                      onClick={() => downloadVideo(video.url, `${video.id}.mp4`)}
+                      className="w-full py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-md shadow-green-500/25 hover:shadow-green-500/40"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Download className="w-4 h-4" />
+                      <span className="font-medium">下载视频</span>
+                    </motion.button>
                   </div>
-                  <button
-                    onClick={() => downloadVideo(video.url, `${video.id}.mp4`)}
-                    className="w-full bg-green-500 text-white py-2.5 rounded-md hover:bg-green-600 flex items-center justify-center gap-2 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>下载</span>
-                  </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
@@ -690,52 +752,82 @@ export function VideoGenerator() {
 
       {/* 配置提示弹窗 */}
       {showConfigHelp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-orange-700">⚠ 需要配置视频生成端点</h3>
-              <button
+        <motion.div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-200/50 dark:border-gray-700/50"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', damping: 25 }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent flex items-center gap-2">
+                <Film className="w-5 h-5 text-orange-500" />
+                需要配置视频生成端点
+              </h3>
+              <motion.button
                 onClick={() => setShowConfigHelp(false)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-500 dark:text-gray-400 transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
                 <X className="w-5 h-5" />
-              </button>
+              </motion.button>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-blue-700 mb-3">
-                  🎬 <strong>视频生成需要配置专用端点</strong>
-                </p>
-                <p className="text-xs text-blue-600 mb-3">
-                  为了使用视频生成功能，需要先在统一配置管理中设置相应的端点路径。
-                </p>
-                <div className="text-xs text-gray-600 space-y-1">
-                  <p><strong>配置步骤：</strong></p>
-                  <p>1. 点击页面左上角的设置按钮</p>
-                  <p>2. 选择"视频生成"标签页</p>
-                  <p>3. 填写对应的端点路径（HL或KL）</p>
-                  <p>4. 保存配置后即可使用视频生成</p>
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 p-5 rounded-2xl border border-blue-200/50 dark:border-blue-700/30">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Wand2 className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2">
+                      视频生成需要配置专用端点
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-3 leading-relaxed">
+                      为了使用视频生成功能，需要先在统一配置管理中设置相应的端点路径。
+                    </p>
+                    <div className="bg-white/60 dark:bg-gray-800/60 rounded-xl p-3 space-y-1">
+                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">配置步骤：</p>
+                      <ol className="text-xs text-gray-600 dark:text-gray-400 space-y-1 list-decimal list-inside">
+                        <li>点击页面左上角的设置按钮</li>
+                        <li>选择"视频生成"标签页</li>
+                        <li>填写对应的端点路径（HL或KL）</li>
+                        <li>保存配置后即可使用视频生成</li>
+                      </ol>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-green-50 p-3 rounded-lg">
-                <p className="text-xs text-green-700">
-                  💡 <strong>温馨提示</strong>: 统一配置管理可以一次性设置所有功能的端点，避免重复配置。
-                </p>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 p-4 rounded-2xl border border-green-200/50 dark:border-green-700/30">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                    <Zap className="w-3 h-3 text-white" />
+                  </div>
+                  <p className="text-xs font-medium text-green-700 dark:text-green-400">
+                    温馨提示: 统一配置管理可以一次性设置所有功能的端点，避免重复配置。
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-6">
-              <button
+            <div className="flex justify-end gap-3 mt-8">
+              <motion.button
                 onClick={() => setShowConfigHelp(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 我知道了
-              </button>
+              </motion.button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );
