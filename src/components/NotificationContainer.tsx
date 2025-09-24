@@ -26,6 +26,7 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
   const getBackgroundColor = (type: NotificationType) => {
     switch (type) {
       case 'success':
+<<<<<<< HEAD
         return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
       case 'error':
         return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
@@ -33,6 +34,15 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
         return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
       case 'info':
         return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+=======
+        return 'bg-green-50 border-green-200';
+      case 'error':
+        return 'bg-red-50 border-red-200';
+      case 'warning':
+        return 'bg-yellow-50 border-yellow-200';
+      case 'info':
+        return 'bg-blue-50 border-blue-200';
+>>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
     }
   };
 
@@ -45,11 +55,19 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
           {getIcon(notification.type)}
         </div>
         <div className="ml-3 flex-1">
+<<<<<<< HEAD
           <h3 className="text-sm font-medium text-gray-900 dark:text-dark-text">
             {notification.title}
           </h3>
           {notification.message && (
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+=======
+          <h3 className="text-sm font-medium text-gray-900">
+            {notification.title}
+          </h3>
+          {notification.message && (
+            <p className="text-sm text-gray-600 mt-1">
+>>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
               {notification.message}
             </p>
           )}
@@ -62,11 +80,15 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
                     action.action();
                     onRemove(notification.id);
                   }}
+<<<<<<< HEAD
                   className={`text-xs px-3 py-1 rounded transition-colors duration-200 ${
                     action.variant === 'primary'
                       ? 'bg-primary-500 text-white hover:bg-primary-600'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
                   }`}
+=======
+                  className={`text-xs px-3 py-1 rounded transition-colors duration-200 ${action.variant === 'primary' ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+>>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
                 >
                   {action.label}
                 </button>
@@ -77,7 +99,11 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
         <div className="ml-4 flex-shrink-0">
           <button
             onClick={() => onRemove(notification.id)}
+<<<<<<< HEAD
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200"
+=======
+            className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+>>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
           >
             <X className="w-4 h-4" />
           </button>

@@ -8,6 +8,7 @@ interface StoreState extends AppState {
   setCurrentTab: (tab: 'chat' | 'image' | 'video' | 'search') => void;
   addConversation: (conversation: Conversation) => void;
   setCurrentConversation: (id: string) => void;
+  updateConversationTimestamp: (conversationId: string) => void; // 添加新的action类型定义
   addMessage: (conversationId: string, message: ChatMessage) => void;
   updateMessage: (conversationId: string, messageId: string, content: string) => void;
   addGeneratedImage: (image: GeneratedImage) => void;
@@ -42,10 +43,23 @@ export const useStore = create<StoreState>()(
       
       setCurrentConversation: (id) => set({ currentConversation: id }),
       
+      // 添加更新对话时间戳的action
+      updateConversationTimestamp: (conversationId) => set((state) => ({
+        conversations: state.conversations.map((conv) =>
+          conv.id === conversationId
+            ? { ...conv, updatedAt: new Date() }
+            : conv
+        ),
+      })),
+      
       addMessage: (conversationId, message) => set((state) => ({
         conversations: state.conversations.map((conv) =>
           conv.id === conversationId
-            ? { ...conv, messages: [...conv.messages, message] }
+            ? { 
+                ...conv, 
+                messages: [...conv.messages, message],
+                updatedAt: new Date() // 更新对话的更新时间
+              }
             : conv
         ),
       })),
@@ -58,6 +72,7 @@ export const useStore = create<StoreState>()(
                 messages: conv.messages.map((msg) =>
                   msg.id === messageId ? { ...msg, content } : msg
                 ),
+                updatedAt: new Date() // 更新对话的更新时间
               }
             : conv
         ),
@@ -105,6 +120,7 @@ export const useStore = create<StoreState>()(
           state.conversations = state.conversations.map(conv => ({
             ...conv,
             createdAt: new Date(conv.createdAt),
+            updatedAt: new Date(conv.updatedAt), // 转换updatedAt字段
             messages: conv.messages.map(msg => ({
               ...msg,
               timestamp: new Date(msg.timestamp)

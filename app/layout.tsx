@@ -15,7 +15,6 @@ export const metadata: Metadata = {
 }
 
 
-
 export default function RootLayout({
   children,
 }: {
@@ -28,6 +27,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text transition-colors duration-300`}>
         <ErrorBoundary>
+          <ThemeProvider>
+            <ErrorProvider>
+              {children}
+            </ErrorProvider>
+          </ThemeProvider>
           <ThemeProvider>
             <ErrorProvider>
               {children}

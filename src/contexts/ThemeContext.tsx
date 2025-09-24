@@ -2,17 +2,24 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+<<<<<<< HEAD
 type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   actualTheme: 'light' | 'dark'; // 实际应用的主题（解析system后）
+=======
+interface ThemeContextType {
+  theme: 'light';
+  actualTheme: 'light';
+>>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+<<<<<<< HEAD
   const [theme, setTheme] = useState<Theme>('system');
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
 
@@ -78,6 +85,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const contextValue: ThemeContextType = {
     theme,
     setTheme,
+=======
+  const theme: 'light' = 'light';
+  const actualTheme: 'light' = 'light';
+
+  // 确保移除dark类
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('dark');
+  }, []);
+
+  const contextValue: ThemeContextType = {
+    theme,
+>>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
     actualTheme,
   };
 

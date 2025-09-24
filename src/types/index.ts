@@ -43,6 +43,7 @@ export interface Conversation {
   title: string;
   messages: ChatMessage[];
   createdAt: Date;
+  updatedAt: Date; // 添加缺失的updatedAt属性
   model?: string;
 }
 

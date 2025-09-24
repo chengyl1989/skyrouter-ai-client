@@ -29,7 +29,11 @@ export function useNotification() {
     setNotifications(prev => [...prev, newNotification]);
 
     // 自动移除通知
+<<<<<<< HEAD
     if ((newNotification.duration ?? 0) > 0) {
+=======
+    if (newNotification.duration && newNotification.duration > 0) {
+>>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
       setTimeout(() => {
         removeNotification(id);
       }, newNotification.duration);
