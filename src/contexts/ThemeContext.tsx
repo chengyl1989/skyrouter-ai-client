@@ -2,107 +2,73 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-<<<<<<< HEAD
 type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   actualTheme: 'light' | 'dark'; // 实际应用的主题（解析system后）
-=======
-interface ThemeContextType {
-  theme: 'light';
-  actualTheme: 'light';
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-<<<<<<< HEAD
   const [theme, setTheme] = useState<Theme>('system');
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
 
-  // 检测系统主题偏好
-  const getSystemTheme = (): 'light' | 'dark' => {
-    if (typeof window === 'undefined') return 'light';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  };
-
-  // 应用主题到DOM
-  const applyTheme = (newTheme: 'light' | 'dark') => {
-    const root = document.documentElement;
-    if (newTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    setActualTheme(newTheme);
-  };
-
-  // 计算实际要应用的主题
-  const resolveTheme = (themeValue: Theme): 'light' | 'dark' => {
-    if (themeValue === 'system') {
-      return getSystemTheme();
-    }
-    return themeValue;
-  };
-
-  // 初始化主题
+  // 监听系统主题变化
   useEffect(() => {
-    // 从localStorage读取保存的主题设置
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    const initialTheme = savedTheme || 'system';
-
-    setTheme(initialTheme);
-    const resolvedTheme = resolveTheme(initialTheme);
-    applyTheme(resolvedTheme);
-  }, []);
-
-  // 监听主题变化
-  useEffect(() => {
-    const resolvedTheme = resolveTheme(theme);
-    applyTheme(resolvedTheme);
-
-    // 保存到localStorage
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  // 监听系统主题变化（当选择system时）
-  useEffect(() => {
-    if (theme !== 'system') return;
-
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      const systemTheme = getSystemTheme();
-      applyTheme(systemTheme);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (theme === 'system') {
+        setActualTheme(e.matches ? 'dark' : 'light');
+      }
     };
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
-  const contextValue: ThemeContextType = {
-    theme,
-    setTheme,
-=======
-  const theme: 'light' = 'light';
-  const actualTheme: 'light' = 'light';
-
-  // 确保移除dark类
+  // 应用主题
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('dark');
+    const root = window.document.documentElement;
+
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setActualTheme(systemTheme);
+    } else {
+      setActualTheme(theme);
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(actualTheme);
+  }, [actualTheme]);
+
+  // 从localStorage读取保存的主题
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
   }, []);
 
-  const contextValue: ThemeContextType = {
+  // 保存主题到localStorage
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const value = {
     theme,
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
+    setTheme,
     actualTheme,
   };
 
   return (
-    <ThemeContext.Provider value={contextValue}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

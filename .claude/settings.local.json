@@ -18,7 +18,8 @@
       "Bash(node:*)",
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

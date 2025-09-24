@@ -1,15 +1,22 @@
 'use client';
 
-import React from 'react';
-import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { Notification, NotificationType } from '@/hooks/useNotification';
+import { useEffect } from 'react';
+import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
+import { useNotification } from '@/hooks/useNotification';
 
-interface NotificationItemProps {
-  notification: Notification;
-  onRemove: (id: string) => void;
+type NotificationType = 'success' | 'error' | 'warning' | 'info';
+
+interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message?: string;
+  duration?: number;
 }
 
-function NotificationItem({ notification, onRemove }: NotificationItemProps) {
+export function NotificationContainer() {
+  const { notifications, removeNotification } = useNotification();
+
   const getIcon = (type: NotificationType) => {
     switch (type) {
       case 'success':
@@ -17,7 +24,7 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
       case 'error':
         return <XCircle className="w-5 h-5 text-red-500" />;
       case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
       case 'info':
         return <Info className="w-5 h-5 text-blue-500" />;
     }
@@ -26,7 +33,6 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
   const getBackgroundColor = (type: NotificationType) => {
     switch (type) {
       case 'success':
-<<<<<<< HEAD
         return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
       case 'error':
         return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
@@ -34,17 +40,45 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
         return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
       case 'info':
         return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
-=======
-        return 'bg-green-50 border-green-200';
-      case 'error':
-        return 'bg-red-50 border-red-200';
-      case 'warning':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'info':
-        return 'bg-blue-50 border-blue-200';
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
     }
   };
+
+  return (
+    <div className="fixed top-4 right-4 z-50 space-y-2">
+      {notifications.map((notification) => (
+        <NotificationItem
+          key={notification.id}
+          notification={notification}
+          onClose={() => removeNotification(notification.id)}
+          getIcon={getIcon}
+          getBackgroundColor={getBackgroundColor}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface NotificationItemProps {
+  notification: Notification;
+  onClose: () => void;
+  getIcon: (type: NotificationType) => React.ReactNode;
+  getBackgroundColor: (type: NotificationType) => string;
+}
+
+function NotificationItem({
+  notification,
+  onClose,
+  getIcon,
+  getBackgroundColor,
+}: NotificationItemProps) {
+  useEffect(() => {
+    if (notification.duration && notification.duration > 0) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, notification.duration);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.duration, onClose]);
 
   return (
     <div
@@ -55,83 +89,22 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
           {getIcon(notification.type)}
         </div>
         <div className="ml-3 flex-1">
-<<<<<<< HEAD
-          <h3 className="text-sm font-medium text-gray-900 dark:text-dark-text">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {notification.title}
-          </h3>
+          </h4>
           {notification.message && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-=======
-          <h3 className="text-sm font-medium text-gray-900">
-            {notification.title}
-          </h3>
-          {notification.message && (
-            <p className="text-sm text-gray-600 mt-1">
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {notification.message}
             </p>
           )}
-          {notification.actions && (
-            <div className="flex gap-2 mt-3">
-              {notification.actions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    action.action();
-                    onRemove(notification.id);
-                  }}
-<<<<<<< HEAD
-                  className={`text-xs px-3 py-1 rounded transition-colors duration-200 ${
-                    action.variant === 'primary'
-                      ? 'bg-primary-500 text-white hover:bg-primary-600'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-=======
-                  className={`text-xs px-3 py-1 rounded transition-colors duration-200 ${action.variant === 'primary' ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
-                >
-                  {action.label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
-        <div className="ml-4 flex-shrink-0">
-          <button
-            onClick={() => onRemove(notification.id)}
-<<<<<<< HEAD
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200"
-=======
-            className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
-    </div>
-  );
-}
-
-interface NotificationContainerProps {
-  notifications: Notification[];
-  onRemove: (id: string) => void;
-}
-
-export function NotificationContainer({ notifications, onRemove }: NotificationContainerProps) {
-  if (notifications.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="fixed top-4 right-4 z-50 space-y-4">
-      {notifications.map((notification) => (
-        <NotificationItem
-          key={notification.id}
-          notification={notification}
-          onRemove={onRemove}
-        />
-      ))}
     </div>
   );
 }

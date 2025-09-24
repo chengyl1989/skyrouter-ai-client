@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, MessageCircle, Image, Video, FileText, Brain } from 'lucide-react';
 import { useStore } from '@/store/useStore';
-import { Search, X, MessageCircle, Image, Video, Search as SearchIcon, Clock, Hash } from 'lucide-react';
 
 interface SearchResult {
   id: string;
@@ -10,197 +10,98 @@ interface SearchResult {
   title: string;
   content: string;
   timestamp: Date;
-  modelUsed?: string;
-  tabToOpen: 'chat' | 'search' | 'image' | 'video';
+  tabToOpen: string;
   itemId?: string;
+  modelUsed?: string;
 }
 
 interface GlobalSearchProps {
-  onSelectResult?: (result: SearchResult) => void;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
-export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
-  const { conversations, searchResults, generatedImages, generatedVideos, setCurrentTab, setCurrentConversation } = useStore();
+export function GlobalSearch({ onClose }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { conversations, searchResults, setCurrentTab, setCurrentConversation } = useStore();
 
-  // 搜索函数
-  const performSearch = (searchQuery: string) => {
+  const search = useCallback((searchQuery: string) => {
     if (!searchQuery.trim()) {
       setResults([]);
       return;
     }
 
-    const query_lower = searchQuery.toLowerCase();
-    const searchResults_array: SearchResult[] = [];
+    const searchResults: SearchResult[] = [];
 
-    // 搜索对话记录
+    // 搜索对话
     conversations.forEach(conv => {
-      // 搜索对话标题
-      if (conv.title.toLowerCase().includes(query_lower)) {
-        searchResults_array.push({
-          id: `conv-title-${conv.id}`,
+      if (conv.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+        searchResults.push({
+          id: conv.id,
           type: 'conversation',
           title: conv.title,
           content: `对话 • ${conv.messages.length} 条消息`,
-<<<<<<< HEAD
           timestamp: conv.createdAt,
-=======
-          timestamp: new Date(conv.updatedAt || conv.createdAt),
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
           tabToOpen: 'chat',
-          itemId: conv.id,
+          itemId: conv.id
         });
       }
-
-      // 搜索对话内容
-      conv.messages.forEach((msg, msgIndex) => {
-        if (msg.content.toLowerCase().includes(query_lower)) {
-          const contentPreview = msg.content.length > 100
-            ? msg.content.substring(0, 100) + '...'
-            : msg.content;
-
-          searchResults_array.push({
-            id: `conv-msg-${conv.id}-${msgIndex}`,
-            type: 'conversation',
-            title: conv.title || `对话 ${conv.id.slice(0, 8)}`,
-            content: contentPreview,
-<<<<<<< HEAD
-            timestamp: conv.createdAt,
-=======
-            timestamp: new Date(conv.updatedAt || conv.createdAt),
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
-            modelUsed: msg.role === 'assistant' ? '模型回复' : '用户消息',
-            tabToOpen: 'chat',
-            itemId: conv.id,
-          });
-        }
-      });
     });
 
-    // 搜索搜索记录
+    // 搜索记录
     searchResults.forEach(result => {
-      if (result.query.toLowerCase().includes(query_lower) ||
-          result.content.toLowerCase().includes(query_lower)) {
-        searchResults_array.push({
+      if (result.query.toLowerCase().includes(searchQuery.toLowerCase())) {
+        searchResults.push({
           id: `search-${result.id}`,
           type: 'search',
           title: result.query,
-          content: result.content.length > 100
-            ? result.content.substring(0, 100) + '...'
-            : result.content,
+          content: `搜索 • ${result.results?.length || 0} 个结果`,
           timestamp: result.timestamp,
-          modelUsed: result.model,
-          tabToOpen: 'search',
-          itemId: result.id,
+          tabToOpen: 'search'
         });
       }
     });
 
-    // 搜索生成的图片
-    generatedImages.forEach(img => {
-      if (img.prompt.toLowerCase().includes(query_lower)) {
-        searchResults_array.push({
-          id: `image-${img.id}`,
-          type: 'image',
-          title: img.prompt,
-          content: `图片生成 • ${img.model}`,
-          timestamp: img.createdAt,
-          modelUsed: img.model,
-          tabToOpen: 'image',
-          itemId: img.id,
-        });
-      }
-    });
-
-    // 搜索生成的视频
-    generatedVideos.forEach(video => {
-      if (video.prompt.toLowerCase().includes(query_lower)) {
-        searchResults_array.push({
-          id: `video-${video.id}`,
-          type: 'video',
-          title: video.prompt,
-          content: `视频生成 • ${video.model}`,
-          timestamp: video.createdAt,
-          modelUsed: video.model,
-          tabToOpen: 'video',
-          itemId: video.id,
-        });
-      }
-    });
-
-    // 按时间排序
-    const sortedResults = searchResults_array.sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-
-    setResults(sortedResults.slice(0, 20)); // 限制结果数量
+    setResults(searchResults);
     setSelectedIndex(0);
-  };
+  }, [conversations, searchResults]);
 
-  // 处理键盘导航
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => Math.min(prev + 1, results.length - 1));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => Math.max(prev - 1, 0));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (results[selectedIndex]) {
-          handleSelectResult(results[selectedIndex]);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        onClose?.();
-        break;
-    }
-  };
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      search(query);
+    }, 300);
 
-  // 处理选择结果
-  const handleSelectResult = (result: SearchResult) => {
-    // 切换到对应标签页
-    setCurrentTab(result.tabToOpen);
+    return () => clearTimeout(timeoutId);
+  }, [query, search]);
 
-    // 如果是对话结果，设置当前对话
-    if (result.type === 'conversation' && result.itemId) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev < results.length - 1 ? prev + 1 : prev));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === 'Enter' && results.length > 0) {
+        handleResultClick(results[selectedIndex]);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [results, selectedIndex]);
+
+  const handleResultClick = (result: SearchResult) => {
+    setCurrentTab(result.tabToOpen as any);
+    if (result.itemId) {
       setCurrentConversation(result.itemId);
     }
-
-    // 通知父组件
-    onSelectResult?.(result);
-    onClose?.();
+    onClose();
   };
 
-  // 获取类型图标
-  const getTypeIcon = (type: SearchResult['type']) => {
-    switch (type) {
-      case 'conversation':
-        return <MessageCircle className="w-4 h-4" />;
-      case 'search':
-        return <SearchIcon className="w-4 h-4" />;
-      case 'image':
-        return <Image className="w-4 h-4" />;
-      case 'video':
-        return <Video className="w-4 h-4" />;
-      default:
-        return <Hash className="w-4 h-4" />;
-    }
-  };
-
-  // 获取类型标签颜色
   const getTypeColor = (type: SearchResult['type']) => {
     switch (type) {
       case 'conversation':
-<<<<<<< HEAD
         return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
       case 'search':
         return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
@@ -210,107 +111,51 @@ export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
         return 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400';
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
-=======
-        return 'bg-blue-100 text-blue-700';
+    }
+  };
+
+  const getTypeIcon = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'conversation':
+        return <MessageCircle className="w-4 h-4" />;
       case 'search':
-        return 'bg-green-100 text-green-700';
+        return <Search className="w-4 h-4" />;
       case 'image':
-        return 'bg-purple-100 text-purple-700';
+        return <Image className="w-4 h-4" />;
       case 'video':
-        return 'bg-orange-100 text-orange-700';
+        return <Video className="w-4 h-4" />;
       default:
-        return 'bg-gray-100 text-gray-700';
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
+        return <FileText className="w-4 h-4" />;
     }
   };
-
-  // 格式化时间
-  const formatTime = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) {
-      return '今天';
-    } else if (days === 1) {
-      return '昨天';
-    } else if (days < 7) {
-      return `${days}天前`;
-    } else {
-      return date.toLocaleDateString('zh-CN');
-    }
-  };
-
-  // 搜索监听
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      performSearch(query);
-    }, 300); // 防抖
-
-    return () => clearTimeout(timer);
-  }, [query, conversations, searchResults, generatedImages, generatedVideos]);
-
-  // 自动聚焦
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
+    <div className="w-full">
       {/* 搜索输入框 */}
       <div className="relative">
-<<<<<<< HEAD
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-=======
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
         <input
-          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="搜索对话、搜索记录、生成内容..."
-<<<<<<< HEAD
-          className="w-full pl-10 pr-10 py-3 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded-lg text-gray-900 dark:text-dark-text placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
-=======
-          className="w-full pl-10 pr-10 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
+          placeholder="搜索对话、记录..."
+          className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+          autoFocus
         />
-        {query && (
-          <button
-            onClick={() => setQuery('')}
-<<<<<<< HEAD
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors duration-200"
-          >
-            <X className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-=======
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors duration-200"
-          >
-            <X className="w-4 h-4 text-gray-400" />
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
-          </button>
-        )}
       </div>
 
       {/* 搜索结果 */}
       {results.length > 0 && (
-<<<<<<< HEAD
-        <div className="absolute top-full mt-2 w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto animate-slide-in">
-=======
-        <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto animate-slide-in">
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
+        <div className="mt-4 max-h-96 overflow-y-auto">
           {results.map((result, index) => (
-            <button
+            <div
               key={result.id}
-              onClick={() => handleSelectResult(result)}
-<<<<<<< HEAD
-              className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
-                index === selectedIndex ? 'bg-primary-50 dark:bg-primary-900/20' : ''
+              onClick={() => handleResultClick(result)}
+              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 mb-2 ${
+                index === selectedIndex
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-800 border border-transparent'
               }`}
-=======
-              className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 last:border-b-0 ${index === selectedIndex ? 'bg-primary-50' : ''}`}
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
             >
               <div className="flex items-start gap-3">
                 <div className={`p-2 rounded-lg ${getTypeColor(result.type)}`}>
@@ -318,57 +163,85 @@ export function GlobalSearch({ onSelectResult, onClose }: GlobalSearchProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-<<<<<<< HEAD
-                    <h4 className="font-medium text-gray-900 dark:text-dark-text truncate">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate">
                       {result.title}
                     </h4>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-=======
-                    <h4 className="font-medium text-gray-900 truncate">
-                      {result.title}
-                    </h4>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
-                      <Clock className="w-3 h-3" />
-                      {formatTime(result.timestamp)}
-                    </div>
+                    {result.modelUsed && (
+                      <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                        {result.modelUsed}
+                      </span>
+                    )}
                   </div>
-<<<<<<< HEAD
-                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate mb-1">
                     {result.content}
                   </p>
-                  {result.modelUsed && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-=======
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {result.content}
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    {result.timestamp.toLocaleDateString()}
                   </p>
-                  {result.modelUsed && (
-                    <p className="text-xs text-gray-500 mt-1">
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
-                      {result.modelUsed}
-                    </p>
-                  )}
                 </div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}
 
-      {/* 空状态 */}
+      {/* 无结果提示 */}
       {query && results.length === 0 && (
-<<<<<<< HEAD
-        <div className="absolute top-full mt-2 w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-lg z-50 p-6 text-center animate-fade-in">
-          <Search className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-=======
-        <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-6 text-center animate-fade-in">
-          <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">
->>>>>>> 084e249abd7dd6ac615471643934f3b127348ab0
-            没有找到与 "{query}" 相关的记录
+        <div className="mt-4 text-center py-8">
+          <Search className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+          <p className="text-gray-500 dark:text-gray-400">没有找到相关结果</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            尝试使用不同的关键词
           </p>
+        </div>
+      )}
+
+      {/* 初始状态提示 */}
+      {!query && (
+        <div className="mt-4 space-y-2">
+          <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            快速访问：
+          </div>
+          <button
+            onClick={() => {
+              setCurrentTab('chat');
+              onClose();
+            }}
+            className="w-full text-left p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4 text-blue-500" />
+            <span className="text-gray-700 dark:text-gray-300">开始新的对话</span>
+          </button>
+          <button
+            onClick={() => {
+              setCurrentTab('search');
+              onClose();
+            }}
+            className="w-full text-left p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+          >
+            <Search className="w-4 h-4 text-green-500" />
+            <span className="text-gray-700 dark:text-gray-300">智能搜索</span>
+          </button>
+          <button
+            onClick={() => {
+              setCurrentTab('image');
+              onClose();
+            }}
+            className="w-full text-left p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+          >
+            <Image className="w-4 h-4 text-purple-500" />
+            <span className="text-gray-700 dark:text-gray-300">图片生成</span>
+          </button>
+          <button
+            onClick={() => {
+              setCurrentTab('video');
+              onClose();
+            }}
+            className="w-full text-left p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+          >
+            <Video className="w-4 h-4 text-orange-500" />
+            <span className="text-gray-700 dark:text-gray-300">视频生成</span>
+          </button>
         </div>
       )}
     </div>
