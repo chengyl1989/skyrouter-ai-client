@@ -44,11 +44,13 @@ export function ChatInterface() {
 
   const createNewConversation = () => {
     const id = generateId();
+    const now = new Date();
     const newConversation = {
       id,
       title: '新对话',
       messages: [],
       createdAt: new Date(),
+      updatedAt: now,
       model: selectedModel,
     };
     addConversation(newConversation);

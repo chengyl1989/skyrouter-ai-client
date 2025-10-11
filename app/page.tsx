@@ -450,7 +450,7 @@ export default function Home() {
       </div>
 
       {/* 主内容区域 */}
-      <div className="flex-1 flex flex-col min-h-0 relative">
+      <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
         {/* 主内容区域装饰 */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 right-20 w-32 h-32 bg-purple-200 dark:bg-purple-700 rounded-full opacity-10 blur-2xl animate-float"></div>

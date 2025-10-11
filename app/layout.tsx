@@ -25,13 +25,8 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body className={`${inter.className} bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text transition-colors duration-300`}>
+      <body className={`${inter.className} bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text transition-colors duration-300 overflow-hidden h-screen`}>
         <ErrorBoundary>
-          <ThemeProvider>
-            <ErrorProvider>
-              {children}
-            </ErrorProvider>
-          </ThemeProvider>
           <ThemeProvider>
             <ErrorProvider>
               {children}

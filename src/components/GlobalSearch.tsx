@@ -13,6 +13,8 @@ interface SearchResult {
   tabToOpen: string;
   itemId?: string;
   modelUsed?: string;
+  query?: string;
+  results?: any[]; // 假设是数组
 }
 
 interface GlobalSearchProps {
@@ -47,21 +49,21 @@ export function GlobalSearch({ onClose }: GlobalSearchProps) {
         });
       }
     });
-
     // 搜索记录
-    searchResults.forEach(result => {
-      if (result.query.toLowerCase().includes(searchQuery.toLowerCase())) {
-        searchResults.push({
-          id: `search-${result.id}`,
-          type: 'search',
-          title: result.query,
-          content: `搜索 • ${result.results?.length || 0} 个结果`,
-          timestamp: result.timestamp,
-          tabToOpen: 'search'
-        });
-      }
+const newSearchEntries: SearchResult[] = []; // 用新数组避免循环中修改原数组
+searchResults.forEach(result => {
+  if (result.query && result.query.toLowerCase().includes(searchQuery.toLowerCase())) {
+    newSearchEntries.push({
+      id: `search-${result.id}`,
+      type: 'search',
+      title: result.query,
+      content: `搜索 • ${result.results?.length || 0} 个结果`,
+      timestamp: result.timestamp,
+      tabToOpen: 'search'
     });
-
+  }
+});
+searchResults.push(...newSearchEntries);
     setResults(searchResults);
     setSelectedIndex(0);
   }, [conversations, searchResults]);
